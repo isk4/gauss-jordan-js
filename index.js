@@ -1,8 +1,21 @@
-let mat = [
-  [1, -3, 4, 3],
-  [2, -5, 6, 6],
-  [-3, 3, 4, 6]
-]
+let mat1 = [
+  [1, 0, 0, 0],
+  [0, 0, 0, 0],
+  [0, 0, 1, 0],
+];
+
+let mat2 = [
+  [1, 0, 4, 5],
+  [0, 0, 6, 8],
+  [0, 0, 4, 9],
+];
+
+let mat3 = [
+  [3, 0, 3, 3, 3],
+  [-3, 1, -2, -4, -1],
+  [-5, 4, 9, 1, 13],
+  [7, 6, 13, 1, 19]
+];
 
 const mostrar = (matriz) => {
   matriz.forEach((fila) => console.log(fila));
@@ -13,10 +26,6 @@ const sumarFilas = (matriz, origen, destino, factor) => {
   matriz[destino - 1].forEach((elemento, i) => {
     matriz[destino - 1][i] = elemento + matriz[origen - 1][i] * factor;
   });
-
-  // matriz[destino - 1] = matriz[destino - 1].map((elemento, i) => {
-  //   return elemento + matriz[origen - 1][i] * factor;
-  // });
 }
 
 const intercambioFilas = (matriz, filaX, filaY) => {
@@ -32,49 +41,81 @@ const multiplicarFila = (matriz, fila, factor) => {
   });
 }
 
-const encontrarFilaPivote = (matriz, columna) => {
+const encontrarFilaPivote = (matriz, filaDesde, columna) => {
   let numeroFila;
-  matriz.forEach((fila, i) => {
-    if (fila[columna - 1] === 1 && i + 1 >= columna) numeroFila = i + 1;
-  });
+  for (let fila = filaDesde; fila <= matriz.length; fila++)
+  {
+    if (matriz[fila - 1][columna - 1] === 1) {
+      numeroFila = fila;
+    }
+  }
   return numeroFila;
 }
 
-const escalonar = (matriz) => {
-  let numeroFilas = matriz.reduce((resultado) => resultado += 1, 0);
+const encontrarValorEnColumna = (matriz, filaDesde, columna) => {
+  let numeroFila;
+  for (let fila = filaDesde; fila <= matriz.length; fila++)
+  {
+    if (matriz[fila - 1][columna - 1] !== 0) {
+      numeroFila = fila;
+    }
+  }
+  return numeroFila;
+}
 
-  for (let columnaActual = 1; columnaActual <= numeroFilas; columnaActual++) {
-    let filaPivote = encontrarFilaPivote(matriz, columnaActual);
+const gaussJordan = (matriz) => {
+  let numeroFilas = matriz.length;
+  let numeroColumnas = matriz[0].length;
+  let filaActual = 1;
+  let columnaActual = 1;
 
-    if (filaPivote !== undefined) {
-      if (columnaActual !== filaPivote) {
-        console.log(`F${columnaActual} <-> F${filaPivote}`);
-        intercambioFilas(matriz, columnaActual, filaPivote);
+  while (columnaActual <= numeroColumnas && filaActual <= numeroFilas) {
+    let filaPivote = encontrarFilaPivote(matriz, filaActual, columnaActual);
+
+    if (filaPivote) {
+      if (filaActual !== filaPivote) {
+        console.log(`F${filaActual} <-> F${filaPivote}`);
+        intercambioFilas(matriz, filaActual, filaPivote);
         mostrar(matriz);
       }
 
-      for (let filaActual = 1; filaActual <= numeroFilas; filaActual++) {
-        if (filaActual !== columnaActual) {
-          let factor = matriz[filaActual - 1][columnaActual - 1] * -1;
-          console.log(`F${filaActual} ${factor < 0 ? "-" : "+"} ${Math.abs(factor)}F${columnaActual} -> F${filaActual}`);
-          sumarFilas(matriz, columnaActual, filaActual, factor);
+      let operaciones = false;
+      for (let fila = 1; fila <= numeroFilas; fila++) {
+        let factor = matriz[fila - 1][columnaActual - 1] * -1;
+        if (factor !== 0 && fila !== filaActual) {
+          operaciones = true;
+          console.log(`F${fila} ${factor < 0 ? "-" : "+"} ${Math.abs(factor)} F${filaActual} -> F${fila}`);
+          sumarFilas(matriz, filaActual, fila, factor);
         }
       }
-      mostrar(matriz);
+
+      if (operaciones) mostrar(matriz);
+      columnaActual++;
+      filaActual++;
     } else {
-      let divisor = matriz[columnaActual - 1][columnaActual - 1];
-      if (divisor !== 0) {
-        console.log(`F${columnaActual} / ${divisor} -> F${columnaActual}`);
-        multiplicarFila(matriz, columnaActual, 1 / divisor);
+      let valorActual = matriz[filaActual - 1][columnaActual - 1];
+
+      if (valorActual !== 0) {
+        console.log(`1/${valorActual} F${filaActual} -> F${filaActual}`);
+        multiplicarFila(matriz, filaActual, 1 / valorActual);
         mostrar(matriz);
   
-        columnaActual--;
+      } else {
+        let filaSiguienteValor = encontrarValorEnColumna(matriz, filaActual, columnaActual);
+
+        if (filaSiguienteValor) {
+          console.log(`F${filaActual} <-> F${filaSiguienteValor}`);
+          intercambioFilas(matriz, filaActual, filaSiguienteValor);
+          mostrar(matriz);
+        } else {
+          columnaActual++;
+        }
       }
     }
   }
 }
 
 console.log("Matriz original\n");
-mostrar(mat);
+mostrar(mat1);
 console.log("\nEscalonando...\n");
-escalonar(mat);
+gaussJordan(mat1);
