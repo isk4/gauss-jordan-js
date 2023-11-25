@@ -8,8 +8,8 @@ let mat1 = [
 
 let mat2 = [
   [1, 0, 4, 5],
-  [0, 0, 6, 8],
-  [0, 0, 4, 9],
+  [0, 2, 6, 8],
+  [8, 9, 4, 9],
 ];
 
 let mat3 = [
@@ -52,6 +52,11 @@ const mcd = (a, b) => {
 const mcm = (a, b) => a * b / mcd(a, b); 
 
 const reducir = (frac) => {
+  if (frac.num === 0) return {num: 0, den: 1};
+  if (frac.num !== 0 && frac.den < 0) {
+    frac.num = -frac.num;
+    frac.den = -frac.den;
+  }
   let divisor = mcd(frac.num, frac.den);
   return {num: frac.num / divisor, den: frac.den / divisor};
 }
@@ -164,8 +169,9 @@ const gaussJordan = (matriz) => {
       let valorActual = matriz[filaActual - 1][columnaActual - 1];
 
       if (valorActual.num !== 0) {
-        console.log(`${formatoFraccion({num: valorActual.den, den: valorActual.num})} F${filaActual} -> F${filaActual}`);
-        multiplicarFila(matriz, filaActual, {num: valorActual.den, den: valorActual.num});
+        let factor = reducir({num: valorActual.den, den: valorActual.num});
+        console.log(`${formatoFraccion(factor)} F${filaActual} -> F${filaActual}`);
+        multiplicarFila(matriz, filaActual, factor);
         mostrarConFracciones(matriz);
   
       } else {
