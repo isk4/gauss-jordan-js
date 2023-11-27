@@ -141,28 +141,40 @@ const gaussJordan = (matriz) => {
   let filaActual = 1;
   let columnaActual = 1;
 
+  let pasos = [];
+  let pasoActual = {operaciones: [], resultado: [[]]};
+
   while (columnaActual <= numeroColumnas && filaActual <= numeroFilas) {
     let filaPivote = encontrarFilaPivote(matriz, filaActual, columnaActual);
 
     if (filaPivote) {
       if (filaActual !== filaPivote) {
-        console.log(`F${filaActual} <-> F${filaPivote}`);
+        pasoActual.operaciones.push(`F${filaActual} <-> F${filaPivote}`);
         intercambioFilas(matriz, filaActual, filaPivote);
-        mostrarConFracciones(matriz);
+        pasoActual.resultado = matriz;
+        pasos.push(pasoActual);
+        pasoActual = {operaciones: [], resultado: [[]]};
       }
 
-      let operaciones = false;
+
+      let bandera = false;
       for (let fila = 1; fila <= numeroFilas; fila++) {
         let factor = multiplicar(matriz[fila - 1][columnaActual - 1], {num: -1, den: 1});
         if (factor.num !== 0 && fila !== filaActual) {
-          operaciones = true;
+          bandera = true;
           let stringFactor = Math.abs(factor.num) / factor.den === 1 ? "" : formatoFraccion({num: Math.abs(factor.num), den: factor.den}) + " ";
-          console.log(`F${fila} ${factor.num < 0 ? "-" : "+"} ${stringFactor}F${filaActual} -> F${fila}`);
+          
+          pasoActual.operaciones.push(`F${fila} ${factor.num < 0 ? "-" : "+"} ${stringFactor}F${filaActual} -> F${fila}`);
           sumarFilas(matriz, filaActual, fila, factor);
         }
       }
 
-      if (operaciones) mostrarConFracciones(matriz);
+      if (bandera) {
+        pasoActual.resultado = matriz;
+        pasos.push(pasoActual);
+      }
+
+      pasoActual = {operaciones: [], resultado: [[]]};
       columnaActual++;
       filaActual++;
     } else {
@@ -170,28 +182,27 @@ const gaussJordan = (matriz) => {
 
       if (valorActual.num !== 0) {
         let factor = reducir({num: valorActual.den, den: valorActual.num});
-        console.log(`${formatoFraccion(factor)} F${filaActual} -> F${filaActual}`);
+        pasoActual.operaciones.push(`${formatoFraccion(factor)} F${filaActual} -> F${filaActual}`);
         multiplicarFila(matriz, filaActual, factor);
-        mostrarConFracciones(matriz);
-  
+
+        pasoActual.resultado = matriz;
+        pasos.push(pasoActual);
       } else {
         let filaSiguienteValor = encontrarValorEnColumna(matriz, filaActual, columnaActual);
 
         if (filaSiguienteValor) {
-          console.log(`F${filaActual} <-> F${filaSiguienteValor}`);
+          pasoActual.operaciones.push(`F${filaActual} <-> F${filaSiguienteValor}`);
           intercambioFilas(matriz, filaActual, filaSiguienteValor);
-          mostrarConFracciones(matriz);
+          pasoActual.resultado = matriz;
+          pasos.push(pasoActual);
         } else {
           columnaActual++;
         }
       }
+      pasoActual = {operaciones: [], resultado: [[]]};
     }
   }
+  return pasos;
 }
 
-console.log("Matriz original\n");
-
-mostrarConFracciones(matrizEnterosAFraccion(mat3));
-console.log("\nEscalonando...\n");
-
-gaussJordan(matrizEnterosAFraccion(mat3));
+console.log(gaussJordan(matrizEnterosAFraccion(mat3)));
